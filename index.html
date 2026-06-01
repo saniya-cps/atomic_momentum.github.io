@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title> Atomic Momentum | Countryside Café Pomodoro & Goal Planner</title>
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="A premium glassmorphic Pomodoro and Goal Planner application. Cozy countryside cafe atmosphere with custom synthesized wind, rain ambient sounds, streak tracking, and daily task and vision milestone integration.">
+  <meta name="keywords" content="pomodoro timer, task manager, streak tracker, countryside cafe, ambient sounds, rain sound, wind sound, vision board, localstorage productivity">
+ 
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="theme-cafe">
+  <!-- Dynamic Background Effects -->
+  <div class="bg-vignette"></div>
+  <div class="bg-aura" id="bgAura"></div>
+  <canvas id="rainCanvas" class="hidden-canvas"></canvas>
+  <div class="cozy-particles" id="cozyParticles"></div>
+
+  <!-- Decorative Countryside SVG Accents -->
+  <div class="floral-decorative floral-top-left">
+    <svg width="240" height="240" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 0 C 25 30, 45 40, 70 45 C 55 55, 40 70, 35 90 C 25 70, 15 50, 0 45 C 5 30, 8 15, 10 0 Z" fill="rgba(112, 136, 113, 0.15)" />
+      <circle cx="45" cy="42" r="3" fill="rgba(212, 163, 115, 0.4)" />
+      <circle cx="55" cy="40" r="2.5" fill="rgba(212, 163, 115, 0.3)" />
+      <circle cx="38" cy="55" r="4" fill="rgba(190, 140, 99, 0.35)" />
+      <path d="M5 25 C 15 35, 20 50, 15 65" stroke="rgba(112, 136, 113, 0.25)" stroke-width="0.8" fill="none" />
+      <path d="M30 10 C 35 25, 50 35, 65 30" stroke="rgba(112, 136, 113, 0.2)" stroke-width="0.8" fill="none" />
+    </svg>
+  </div>
+  <div class="floral-decorative floral-bottom-right">
+    <svg width="280" height="280" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M90 100 C 75 70, 55 60, 30 55 C 45 45, 60 30, 65 10 C 75 30, 85 50, 100 55 C 95 70, 92 85, 90 100 Z" fill="rgba(112, 136, 113, 0.12)" />
+      <circle cx="55" cy="58" r="3.5" fill="rgba(212, 163, 115, 0.3)" />
+      <circle cx="62" cy="45" r="2" fill="rgba(212, 163, 115, 0.25)" />
+      <path d="M95 75 C 85 65, 80 50, 85 35" stroke="rgba(112, 136, 113, 0.2)" stroke-width="0.8" fill="none" />
+    </svg>
+  </div>
+
+  <!-- Satisfying Full Screen Confetti Canvas -->
+  <canvas id="confettiCanvas"></canvas>
+
+  <div class="app-container">
+    <!-- Header Block -->
+    <header class="app-header">
+      <div class="logo-area">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <h1>Atomic Momentum</h1>
+          <span class="logo-subtitle">Countryside Café</span>
+        </div>
+      </div>
+
+      <!-- Header Controls -->
+      <div class="header-controls">
+        <!-- Daily Focus Streak Badge -->
+        <div class="streak-badge" id="streakBadge" title="Daily Focus Streak! Complete a session today to maintain your streak.">
+          <span class="streak-fire">🔥</span>
+          <span class="streak-count" id="streakCount">0</span>
+          <span class="streak-label">days</span>
+        </div>
+
+        <!-- Action Tools -->
+        <div class="control-actions">
+          <button id="themeToggleBtn" class="action-btn" title="Choose Atmosphere">
+            <span class="btn-icon">🎨</span>
+            <span class="btn-text">Atmosphere</span>
+          </button>
+          <button id="statsToggleBtn" class="action-btn" title="View Statistics">
+            <span class="btn-icon">📊</span>
+            <span class="btn-text">Analytics</span>
+          </button>
+          <button id="settingsToggleBtn" class="action-btn" title="Timer Settings">
+            <span class="btn-icon">⚙️</span>
+            <span class="btn-text">Settings</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Dynamic Content Grid -->
+    <main class="app-main-grid">
+      
+      <!-- LEFT COLUMN: The Focus Center (Timer & Sounds) -->
+      <section class="grid-card focus-section">
+        
+        <!-- Current State Title Overlay -->
+        <div class="session-state-header">
+          <span class="cozy-pill" id="sessionLabel">Focus Session</span>
+          <h2 class="active-task-display" id="activeTaskDisplay">Unwinding into Coffee & Code</h2>
+        </div>
+
+        <!-- The Gorgeous Circular Timer -->
+        <div class="timer-container">
+          <div class="timer-circle-wrap">
+            <svg class="timer-svg" viewBox="0 0 200 200">
+              <defs>
+                <linearGradient id="focusGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="var(--accent-glow-primary)" />
+                  <stop offset="100%" stop-color="var(--accent-glow-secondary)" />
+                </linearGradient>
+                <filter id="cozyGlow" x="-10%" y="-10%" width="120%" height="120%">
+                  <feGaussianBlur stdDeviation="6" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+              <!-- Background ring track -->
+              <circle class="timer-track" cx="100" cy="100" r="88" stroke-width="6" />
+              <!-- Progress Ring -->
+              <circle class="timer-progress" cx="100" cy="100" r="88" stroke-width="8" 
+                      stroke="url(#focusGradient)" stroke-dasharray="552.92" stroke-dashoffset="0"
+                      filter="url(#cozyGlow)" />
+            </svg>
+            
+            <!-- Timer Interactive Text Center -->
+            <div class="timer-text-content">
+              <div class="timer-countdown" id="timerClock">25:00</div>
+              <div class="session-counter" id="sessionCounter">Session 1 of 4</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timer Operation Controls -->
+        <div class="timer-controls-row">
+          <button id="timerResetBtn" class="timer-sub-btn" title="Reset Session">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+            </svg>
+          </button>
+          
+          <button id="timerPlayBtn" class="timer-main-btn" title="Start Focus Session">
+            <span class="play-icon">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </span>
+            <span class="pause-icon hidden">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
+                <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+              </svg>
+            </span>
+          </button>
+
+          <button id="timerSkipBtn" class="timer-sub-btn" title="Skip Session">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Quick Interval Selectors -->
+        <div class="preset-links">
+          <button class="preset-pill active" data-type="focus">🍅 Focus (25m)</button>
+          <button class="preset-pill" data-type="short">☕ Short Break (5m)</button>
+          <button class="preset-pill" data-type="long">🌿 Long Break (15m)</button>
+        </div>
+
+        <div class="divider-line"></div>
+
+        <!-- Cozy Soundscape Panel -->
+        <div class="sound-deck">
+          <div class="sound-deck-header">
+            <h3>Cozy Café Ambient Sounds</h3>
+            <span class="sound-status-badge" id="audioToggleAll" title="Mute/Unmute Audio Master">
+              🎵 Ambient Mixer
+            </span>
+          </div>
+          
+          <div class="sound-mixer-grids">
+            <!-- Wind Synthesizer Slider -->
+            <div class="slider-group">
+              <div class="slider-meta">
+                <span class="slider-icon">🍃</span>
+                <span class="slider-name">Cozy Wind</span>
+                <span class="slider-val" id="volWindVal">0%</span>
+              </div>
+              <input type="range" id="volWind" min="0" max="100" value="0" class="cozy-slider">
+            </div>
+
+            <!-- Rain Synthesizer Slider -->
+            <div class="slider-group">
+              <div class="slider-meta">
+                <span class="slider-icon">🌧️</span>
+                <span class="slider-name">Warm Rain</span>
+                <span class="slider-val" id="volRainVal">0%</span>
+              </div>
+              <input type="range" id="volRain" min="0" max="100" value="0" class="cozy-slider">
+            </div>
+
+            <!-- Acoustic Cafe Ambient Loop Slider -->
+            <div class="slider-group">
+              <div class="slider-meta">
+                <span class="slider-icon">☕</span>
+                <span class="slider-name">Café Music</span>
+                <span class="slider-val" id="volCafeVal">0%</span>
+              </div>
+              <input type="range" id="volCafe" min="0" max="100" value="0" class="cozy-slider">
+            </div>
+            
+            <!-- Binaural Focus Humming Slider -->
+            <div class="slider-group">
+              <div class="slider-meta">
+                <span class="slider-icon">🔮</span>
+                <span class="slider-name">Deep Hum</span>
+                <span class="slider-val" id="volHumVal">0%</span>
+              </div>
+              <input type="range" id="volHum" min="0" max="100" value="0" class="cozy-slider">
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- RIGHT COLUMN: Task Planner & Long-term Vision Board -->
+      <section class="planner-section-layout">
+        
+        <!-- Toggleable Section Navigation Tabs -->
+        <div class="planner-tabs">
+          <button id="tabDailyBtn" class="tab-pill active">
+            📝 Daily Planner
+          </button>
+          <button id="tabVisionBtn" class="tab-pill">
+            🌟 Vision & Goals
+          </button>
+        </div>
+
+        <!-- Daily Planner Content Pane -->
+        <div class="planner-pane" id="paneDaily">
+          <!-- Add Daily Task Card -->
+          <div class="glass-card add-task-card">
+            <h3 class="pane-sub-title">Plan Your Next Step</h3>
+            <form id="taskForm" class="cozy-form">
+              <div class="form-row main-input-row">
+                <input type="text" id="taskTitle" placeholder="What are you focusing on right now?" required maxlength="120" autocomplete="off">
+              </div>
+              
+              <div class="form-row optional-row">
+                <!-- Est Pomodoros -->
+                <div class="input-labeled-group">
+                  <label for="taskEstPomodoros">Target Chunks</label>
+                  <select id="taskEstPomodoros">
+                    <option value="1">1 🍅 (25m)</option>
+                    <option value="2" selected>2 🍅 (50m)</option>
+                    <option value="3">3 🍅 (75m)</option>
+                    <option value="4">4 🍅 (100m)</option>
+                    <option value="6">6 🍅 (150m)</option>
+                    <option value="8">8 🍅 (200m)</option>
+                  </select>
+                </div>
+
+                <!-- Priority -->
+                <div class="input-labeled-group">
+                  <label for="taskPriority">Priority</label>
+                  <select id="taskPriority">
+                    <option value="low">Low 🟢</option>
+                    <option value="medium" selected>Medium 🟡</option>
+                    <option value="high">High 🔴</option>
+                  </select>
+                </div>
+
+                <!-- Link to Long-Term Vision Goal -->
+                <div class="input-labeled-group">
+                  <label for="taskGoalLink">Connect to Goal</label>
+                  <select id="taskGoalLink">
+                    <option value="">Personal Focus 🌿</option>
+                    <!-- Options populated dynamically from Vision Goals -->
+                  </select>
+                </div>
+              </div>
+
+              <button type="submit" class="submit-btn">
+                <span>Add Task to Day</span>
+                <span class="btn-sub-arrow">➔</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Tasks Display Board -->
+          <div class="tasks-board">
+            <div class="board-filters">
+              <span class="board-title">Today's Focus List</span>
+              <div class="filter-actions">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="active">Active</button>
+                <button class="filter-btn" data-filter="completed">Completed</button>
+              </div>
+            </div>
+
+            <!-- Task Items Container -->
+            <div class="task-list-scroller" id="taskListContainer">
+              <!-- Dynamically populated tasks -->
+              <div class="cozy-empty-state">
+                <span class="empty-emoji">☕</span>
+                <p>Pour yourself a hot cup of tea. Add a task to outline your day!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vision Board Content Pane (Hidden by Default) -->
+        <div class="planner-pane hidden-pane" id="paneVision">
+          <div class="glass-card vision-creator-card">
+            <h3 class="pane-sub-title">Set Long-Term Goals</h3>
+            <p class="pane-desc">Create long-term vision cards. Link your daily to-dos to watch these high-level milestone progress bars fill up!</p>
+            <form id="goalForm" class="cozy-form">
+              <div class="form-row main-input-row">
+                <input type="text" id="goalTitle" placeholder="e.g., Launch my personal portfolio website" required maxlength="100" autocomplete="off">
+              </div>
+
+              <div class="form-row goal-extras-row">
+                <div class="input-labeled-group">
+                  <label for="goalCategory">Goal Theme</label>
+                  <select id="goalCategory">
+                    <option value="career">🎓 Career & Learning</option>
+                    <option value="creative">🎨 Art & Creation</option>
+                    <option value="wellness">🧘 Health & Self-Care</option>
+                    <option value="life">🌻 Lifestyle & Dreams</option>
+                  </select>
+                </div>
+                
+                <div class="input-labeled-group">
+                  <label for="goalMilestoneTarget">Estimated Pomodoros</label>
+                  <input type="number" id="goalMilestoneTarget" min="5" max="500" value="20" required>
+                </div>
+              </div>
+
+              <button type="submit" class="submit-btn vision-submit-btn">
+                <span>Set Vision Goal</span>
+                <span class="btn-sub-arrow">➔</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Long-Term Goals Cards Grid -->
+          <div class="goals-grid" id="goalsGridContainer">
+            <!-- Dynamically populated long term goal cards -->
+          </div>
+        </div>
+
+      </section>
+    </main>
+  </div>
+
+  <!-- ATMOSPHERE / THEME PICKER MODAL -->
+  <div class="modal-overlay hidden" id="themeModal">
+    <div class="cozy-modal glass-modal theme-modal-card">
+      <div class="modal-header">
+        <h2>Choose Your Atmosphere</h2>
+        <button class="close-modal-btn" id="themeModalClose">&times;</button>
+      </div>
+      <p class="modal-desc">Transport yourself to different corners of the countryside café. Changing themes adapts your background color, dynamic particles, and primary lighting.</p>
+      
+      <div class="theme-selection-grid">
+        <!-- Cafe Theme -->
+        <button class="theme-card-btn active" data-theme="cafe">
+          <div class="theme-preview cafe-preview">
+            <div class="theme-preview-glow"></div>
+            <span class="preview-emoji">☕</span>
+          </div>
+          <div class="theme-card-meta">
+            <h4>Cozy Café</h4>
+            <p>Earthy amber timber, stacks of leather books, and floating warm steam.</p>
+          </div>
+        </button>
+
+        <!-- Rainy Theme -->
+        <button class="theme-card-btn" data-theme="rainy">
+          <div class="theme-preview rainy-preview">
+            <div class="theme-preview-glow"></div>
+            <span class="preview-emoji">🌧️</span>
+          </div>
+          <div class="theme-card-meta">
+            <h4>Rainy Cafe Window</h4>
+            <p>Sleek slate-blue glass with trickling canvas rain droplets.</p>
+          </div>
+        </button>
+
+        <!-- Botanical Theme -->
+        <button class="theme-card-btn" data-theme="library">
+          <div class="theme-preview library-preview">
+            <div class="theme-preview-glow"></div>
+            <span class="preview-emoji">📖</span>
+          </div>
+          <div class="theme-card-meta">
+            <h4>Botanical Library</h4>
+            <p>Deep forest sage and warm brass lamps. Drifting gold leaf particles.</p>
+          </div>
+        </button>
+
+        <!-- Lavender Theme -->
+        <button class="theme-card-btn" data-theme="lavender">
+          <div class="theme-preview lavender-preview">
+            <div class="theme-preview-glow"></div>
+            <span class="preview-emoji">🪻</span>
+          </div>
+          <div class="theme-card-meta">
+            <h4>Lavender Terrace</h4>
+            <p>Soft coral and lilac sundown gradient with gentle evening breeze sway.</p>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANALYTICS & STATS MODAL -->
+  <div class="modal-overlay hidden" id="statsModal">
+    <div class="cozy-modal glass-modal stats-modal-card">
+      <div class="modal-header">
+        <h2>Your Focus Analytics</h2>
+        <button class="close-modal-btn" id="statsModalClose">&times;</button>
+      </div>
+      
+      <div class="stats-overview-grid">
+        <div class="overview-stat-card">
+          <span class="stat-icon">🕒</span>
+          <div class="stat-number" id="statsHours">0.0</div>
+          <div class="stat-label">Focus Hours</div>
+        </div>
+        <div class="overview-stat-card">
+          <span class="stat-icon">🍅</span>
+          <div class="stat-number" id="statsCompletedPomodoros">0</div>
+          <div class="stat-label">Pomodoros Done</div>
+        </div>
+        <div class="overview-stat-card">
+          <span class="stat-icon">🔥</span>
+          <div class="stat-number" id="statsStreak">0</div>
+          <div class="stat-label">Active Streak</div>
+        </div>
+        <div class="overview-stat-card">
+          <span class="stat-icon">🎯</span>
+          <div class="stat-number" id="statsGoalsCount">0</div>
+          <div class="stat-label">Goals Active</div>
+        </div>
+      </div>
+
+      <div class="weekly-progress-card">
+        <h3>Weekly Trend</h3>
+        <p class="chart-desc">Pomodoros completed over the last 7 days.</p>
+        <div class="svg-chart-container" id="svgChartWrapper">
+          <!-- Dynamic SVG Chart injected here -->
+          <svg class="analytics-svg" viewBox="0 0 400 150">
+            <!-- Grid lines -->
+            <line x1="40" y1="20" x2="380" y2="20" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            <line x1="40" y1="60" x2="380" y2="60" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            <line x1="40" y1="100" x2="380" y2="100" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            <line x1="40" y1="130" x2="380" y2="130" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>
+            <!-- Placeholder dynamic data path injected by JS -->
+            <g id="chartSvgContent">
+              <text x="200" y="80" fill="rgba(255,255,255,0.4)" font-size="12" text-anchor="middle">Log your first Pomodoro session to see trends!</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <div class="history-log-section">
+        <h3>Focus Chronology</h3>
+        <div class="history-log-scroller" id="statsHistoryContainer">
+          <p class="empty-history-text">No recorded focus sessions yet. Let's make today count!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIGURATION SETTINGS MODAL -->
+  <div class="modal-overlay hidden" id="settingsModal">
+    <div class="cozy-modal glass-modal settings-modal-card">
+      <div class="modal-header">
+        <h2>Timer Settings</h2>
+        <button class="close-modal-btn" id="settingsModalClose">&times;</button>
+      </div>
+
+      <form id="settingsForm" class="cozy-form settings-form-body">
+        <div class="settings-grid">
+          
+          <!-- Column 1: Durations -->
+          <div class="settings-group-box">
+            <h3>Session Durations (minutes)</h3>
+            <div class="settings-row">
+              <label for="setFocusTime">🍅 Focus Length</label>
+              <input type="number" id="setFocusTime" min="1" max="120" value="25">
+            </div>
+            <div class="settings-row">
+              <label for="setShortBreak">☕ Short Break</label>
+              <input type="number" id="setShortBreak" min="1" max="60" value="5">
+            </div>
+            <div class="settings-row">
+              <label for="setLongBreak">🌿 Long Break</label>
+              <input type="number" id="setLongBreak" min="1" max="60" value="15">
+            </div>
+            <div class="settings-row">
+              <label for="setLongBreakInterval">🔄 Long Break After</label>
+              <div class="inline-input-row">
+                <input type="number" id="setLongBreakInterval" min="1" max="10" value="4">
+                <span>sessions</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 2: Behavior & Audio -->
+          <div class="settings-group-box">
+            <h3>Flow & Audio Alerts</h3>
+            <div class="settings-row checkbox-row">
+              <input type="checkbox" id="setAutoFocus">
+              <label for="setAutoFocus">Auto-start focus sessions</label>
+            </div>
+            <div class="settings-row checkbox-row">
+              <input type="checkbox" id="setAutoBreaks">
+              <label for="setAutoBreaks">Auto-start break sessions</label>
+            </div>
+            
+            <div class="settings-row select-row">
+              <label for="setAlertTone">🔔 Notification Tone</label>
+              <select id="setAlertTone">
+                <option value="harp">Soft Cozy Harp 🎵</option>
+                <option value="digital">Zen Gong 🔔</option>
+                <option value="wood">Wooden Coffee Knocks 🪵</option>
+                <option value="none">Pure Silence 🔕</option>
+              </select>
+            </div>
+
+            <div class="settings-row">
+              <label for="setAlertVol">Notification Volume</label>
+              <div class="inline-volume-row">
+                <input type="range" id="setAlertVol" min="0" max="100" value="70" class="cozy-slider">
+                <span id="setAlertVolVal">70%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-footer-actions">
+          <button type="button" class="preset-pill reset-defaults-btn" id="settingsResetBtn">Restore Default Defaults</button>
+          <button type="submit" class="submit-btn settings-save-btn">Save Configurations</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="app.js"></script>
+</body>
+</html>
